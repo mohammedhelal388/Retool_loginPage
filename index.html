@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartoon Login</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1035;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Starry background */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: 0.2; transform: scale(1); }
+    to { opacity: 1; transform: scale(1.4); }
+  }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .characters-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: -12px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .char-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .character {
+    width: 72px;
+    height: 100px;
+    position: relative;
+    transition: transform 0.15s ease;
+  }
+
+  /* Card */
+  .card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 28px;
+    padding: 40px 44px 36px;
+    width: 380px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+    position: relative;
+    z-index: 1;
+  }
+
+  .card h1 {
+    color: white;
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    text-align: center;
+    letter-spacing: -0.5px;
+  }
+
+  .card .subtitle {
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .field-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 7px;
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  input[type="email"],
+  input[type="password"],
+  input[type="text"] {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 13px 16px;
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  input:focus {
+    border-color: #a78bfa;
+    background: rgba(167,139,250,0.1);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+  }
+
+  input::placeholder { color: rgba(255,255,255,0.25); }
+
+  .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 18px;
+    padding: 4px;
+    transition: color 0.2s;
+  }
+  .toggle-pw:hover { color: rgba(255,255,255,0.8); }
+
+  .btn-login {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 24px rgba(124,58,237,0.45);
+    letter-spacing: 0.3px;
+  }
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(124,58,237,0.6);
+  }
+  .btn-login:active { transform: translateY(0); }
+
+  /* ===== CHARACTER SVG STYLES ===== */
+  .char-svg {
+    overflow: visible;
+  }
+
+  /* Arms */
+  .arm {
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .arm-left { transform-origin: 68px 55px; }
+  .arm-right { transform-origin: 4px 55px; }
+
+  /* Eyes - the iris/pupil group */
+  .eye-group {
+    transition: transform 0.1s ease;
+  }
+
+  .char-body {
+    transition: transform 0.2s ease;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="scene">
+  <div class="characters-row" id="charsRow"></div>
+  <div class="card">
+    <h1>Welcome Back!</h1>
+    <p class="subtitle">Sign in to your account</p>
+
+    <div class="field-group">
+      <label>Email</label>
+      <div class="input-wrap">
+        <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input type="password" id="passwordInput" placeholder="••••••••" />
+        <button class="toggle-pw" id="togglePw" title="Toggle password visibility">👁️</button>
+      </div>
+    </div>
+
+    <button class="btn-login">Sign In →</button>
+  </div>
+</div>
+
+<script>
+// ---- Stars ----
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --dur:${1.5 + Math.random()*3}s;
+    animation-delay:${Math.random()*3}s;
+  `;
+  starsEl.appendChild(s);
+}
+
+// ---- Character definitions ----
+const COLORS = [
+  { body: '#FF6B9D', face: '#FFD4E8', blush: '#FF9FC0', hat: '#C94080', detail: '#E8559A' },
+  { body: '#4ECDC4', face: '#B8F0ED', blush: '#7EDDD8', hat: '#2A9E95', detail: '#3AB5AC' },
+  { body: '#FFB347', face: '#FFE0B2', blush: '#FFCA80', hat: '#D4850A', detail: '#F0A030' },
+  { body: '#9B59B6', face: '#E8D5F5', blush: '#C98FE0', hat: '#6C3483', detail: '#8E44AD' },
+  { body: '#5DADE2', face: '#D0E8FF', blush: '#90C5F0', hat: '#2E86C1', detail: '#4A9DD4' },
+  { body: '#58D68D', face: '#C8F5D8', blush: '#85E0A8', hat: '#1E8449', detail: '#48C878' },
+];
+
+// Characters array — store refs for animation
+const chars = [];
+const N = 6;
+
+function buildCharSVG(idx, palette) {
+  const id = `c${idx}`;
+  // Each char is a small cute rounded figure
+  // Body: rounded rect, head: circle, eyes, arms
+  return `
+<svg class="char-svg" width="72" height="100" viewBox="0 0 72 100" fill="none" xmlns="http://www.w3.org/2000/svg" data-idx="${idx}" id="svg_${id}">
+  <!-- Body -->
+  <g class="char-body" id="body_${id}">
+    <!-- Torso -->
+    <rect x="16" y="52" width="40" height="36" rx="12" fill="${palette.body}"/>
+    <!-- Buttons -->
+    <circle cx="36" cy="60" r="2.5" fill="${palette.detail}" opacity="0.7"/>
+    <circle cx="36" cy="69" r="2.5" fill="${palette.detail}" opacity="0.7"/>
+    <!-- Left arm -->
+    <g class="arm arm-left" id="armL_${id}">
+      <rect x="2" y="52" width="14" height="28" rx="7" fill="${palette.body}"/>
+      <!-- hand -->
+      <circle cx="9" cy="83" r="6" fill="${palette.face}"/>
+    </g>
+    <!-- Right arm -->
+    <g class="arm arm-right" id="armR_${id}">
+      <rect x="56" y="52" width="14" height="28" rx="7" fill="${palette.body}"/>
+      <!-- hand -->
+      <circle cx="63" cy="83" r="6" fill="${palette.face}"/>
+    </g>
+    <!-- Neck -->
+    <rect x="30" y="44" width="12" height="12" rx="4" fill="${palette.face}"/>
+    <!-- Head -->
+    <circle cx="36" cy="32" r="24" fill="${palette.face}"/>
+    <!-- Hat -->
+    <ellipse cx="36" cy="10" rx="22" ry="7" fill="${palette.hat}"/>
+    <rect x="20" y="8" width="32" height="14" rx="6" fill="${palette.hat}"/>
+    <!-- Hat band -->
+    <rect x="20" y="17" width="32" height="4" rx="2" fill="${palette.detail}" opacity="0.6"/>
+    <!-- Blush -->
+    <ellipse cx="21" cy="37" rx="6" ry="4" fill="${palette.blush}" opacity="0.6"/>
+    <ellipse cx="51" cy="37" rx="6" ry="4" fill="${palette.blush}" opacity="0.6"/>
+    <!-- Eye whites -->
+    <ellipse cx="27" cy="30" rx="7" ry="8" fill="white"/>
+    <ellipse cx="45" cy="30" rx="7" ry="8" fill="white"/>
+    <!-- Eye sockets (for squinting) -->
+    <g id="eyes_${id}">
+      <!-- Left eye iris+pupil -->
+      <g id="eyeL_${id}">
+        <circle cx="27" cy="30" r="4.5" fill="#3d2c1e"/>
+        <circle cx="28.5" cy="28.5" r="1.5" fill="white" opacity="0.8"/>
+      </g>
+      <!-- Right eye iris+pupil -->
+      <g id="eyeR_${id}">
+        <circle cx="45" cy="30" r="4.5" fill="#3d2c1e"/>
+        <circle cx="46.5" cy="28.5" r="1.5" fill="white" opacity="0.8"/>
+      </g>
+    </g>
+    <!-- Squint overlays (hidden by default) -->
+    <g id="squint_${id}" style="display:none">
+      <rect x="18" y="28" width="18" height="8" rx="4" fill="${palette.face}"/>
+      <rect x="36" y="28" width="18" height="8" rx="4" fill="${palette.face}"/>
+      <!-- squint lines -->
+      <path d="M19 32 Q27 26 35 32" stroke="${palette.blush}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M37 32 Q45 26 53 32" stroke="${palette.blush}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Smile (shown when email focused) -->
+    <g id="smile_${id}" style="display:none">
+      <path d="M28 40 Q36 47 44 40" stroke="${palette.detail}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Normal mouth -->
+    <g id="mouth_${id}">
+      <path d="M30 40 Q36 44 42 40" stroke="${palette.detail}" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Look-away covers (for password reveal) -->
+    <g id="lookaway_${id}" style="display:none">
+      <!-- hand over eyes -->
+      <rect x="14" y="22" width="44" height="18" rx="9" fill="${palette.body}" opacity="0.95"/>
+      <rect x="14" y="22" width="44" height="4" rx="2" fill="${palette.detail}" opacity="0.5"/>
+    </g>
+  </g>
+</svg>`;
+}
+
+const charsRow = document.getElementById('charsRow');
+for (let i = 0; i < N; i++) {
+  const wrap = document.createElement('div');
+  wrap.className = 'char-wrap';
+  wrap.innerHTML = buildCharSVG(i, COLORS[i]);
+  charsRow.appendChild(wrap);
+  chars.push({
+    idx: i,
+    palette: COLORS[i],
+    eyeL: null, eyeR: null,
+    armL: null, armR: null,
+    squint: null, smile: null, mouth: null, lookaway: null,
+  });
+}
+
+// Cache element refs
+chars.forEach((c, i) => {
+  const id = `c${i}`;
+  c.eyeL = document.getElementById(`eyeL_${id}`);
+  c.eyeR = document.getElementById(`eyeR_${id}`);
+  c.armL = document.getElementById(`armL_${id}`);
+  c.armR = document.getElementById(`armR_${id}`);
+  c.squint = document.getElementById(`squint_${id}`);
+  c.smile = document.getElementById(`smile_${id}`);
+  c.mouth = document.getElementById(`mouth_${id}`);
+  c.lookaway = document.getElementById(`lookaway_${id}`);
+  c.svg = document.getElementById(`svg_c${i}`);
+});
+
+// ---- State ----
+let state = 'idle'; // idle | email | password | reveal
+let mouseX = window.innerWidth / 2;
+let mouseY = window.innerHeight / 2;
+let animFrame;
+
+const emailInput = document.getElementById('emailInput');
+const passwordInput = document.getElementById('passwordInput');
+const togglePw = document.getElementById('togglePw');
+
+// ---- Mouse tracking ----
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  if (state === 'idle' || state === 'email') updateEyesAndArms();
+});
+
+function getSVGCenter(svg) {
+  const rect = svg.getBoundingClientRect();
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+function updateEyesAndArms() {
+  chars.forEach((c, i) => {
+    const center = getSVGCenter(c.svg);
+    const dx = mouseX - center.x;
+    const dy = mouseY - center.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    // Eye tracking — max offset ±3px
+    const angle = Math.atan2(dy, dx);
+    const eyeMax = 3;
+    const ex = clamp(Math.cos(angle) * Math.min(dist/60, 1) * eyeMax, -eyeMax, eyeMax);
+    const ey = clamp(Math.sin(angle) * Math.min(dist/60, 1) * eyeMax, -eyeMax, eyeMax);
+
+    // Left eye default center: 27,30  Right: 45,30
+    c.eyeL.querySelector('circle').setAttribute('cx', 27 + ex);
+    c.eyeL.querySelector('circle').setAttribute('cy', 30 + ey);
+    c.eyeR.querySelector('circle').setAttribute('cx', 45 + ex);
+    c.eyeR.querySelector('circle').setAttribute('cy', 30 + ey);
+
+    // Arm reaching — if cursor is close-ish, raise arms toward cursor
+    const norm = clamp(1 - dist / 350, 0, 1);
+    const side = dx > 0 ? 1 : -1;
+
+    // Left arm: rotate toward cursor if cursor is to the left, else rest
+    const armLAngle = side < 0 ? -norm * 55 : -norm * 20;
+    const armRAngle = side > 0 ? norm * 55 : norm * 20;
+
+    c.armL.style.transformOrigin = '9px 52px';
+    c.armL.style.transform = `rotate(${armLAngle}deg)`;
+    c.armR.style.transformOrigin = '63px 52px';
+    c.armR.style.transform = `rotate(${armRAngle}deg)`;
+  });
+}
+
+// ---- Input states ----
+emailInput.addEventListener('focus', () => {
+  setStateEmail();
+});
+emailInput.addEventListener('blur', () => {
+  if (document.activeElement !== passwordInput) setStateIdle();
+});
+emailInput.addEventListener('input', () => {
+  if (emailInput.value.length > 0) setStateEmail();
+});
+
+passwordInput.addEventListener('focus', () => {
+  setStatePassword();
+});
+passwordInput.addEventListener('blur', () => {
+  if (document.activeElement !== emailInput && !state.startsWith('reveal')) setStateIdle();
+});
+
+togglePw.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  const isShowing = passwordInput.type === 'password';
+  passwordInput.type = isShowing ? 'text' : 'password';
+  togglePw.textContent = isShowing ? '🙈' : '👁️';
+  if (isShowing) {
+    setStateLookAway();
+  } else {
+    setStatePassword();
+  }
+});
+
+function setStateIdle() {
+  state = 'idle';
+  chars.forEach(c => {
+    showNormalEyes(c);
+    c.squint.style.display = 'none';
+    c.smile.style.display = 'none';
+    c.mouth.style.display = '';
+    c.lookaway.style.display = 'none';
+    c.armL.style.transform = 'rotate(0deg)';
+    c.armR.style.transform = 'rotate(0deg)';
+  });
+}
+
+function setStateEmail() {
+  state = 'email';
+  chars.forEach(c => {
+    showNormalEyes(c);
+    c.squint.style.display = 'none';
+    c.smile.style.display = '';
+    c.mouth.style.display = 'none';
+    c.lookaway.style.display = 'none';
+  });
+}
+
+function setStatePassword() {
+  state = 'password';
+  chars.forEach((c, i) => {
+    c.squint.style.display = '';
+    c.smile.style.display = 'none';
+    c.mouth.style.display = 'none';
+    c.lookaway.style.display = 'none';
+    // Eyes hidden by squint overlay, reset positions
+    c.eyeL.querySelector('circle').setAttribute('cx', 27);
+    c.eyeL.querySelector('circle').setAttribute('cy', 30);
+    c.eyeR.querySelector('circle').setAttribute('cx', 45);
+    c.eyeR.querySelector('circle').setAttribute('cy', 30);
+    // Arms down / slightly inward
+    c.armL.style.transform = 'rotate(10deg)';
+    c.armR.style.transform = 'rotate(-10deg)';
+  });
+}
+
+function setStateLookAway() {
+  state = 'reveal';
+  chars.forEach((c, i) => {
+    c.squint.style.display = 'none';
+    c.lookaway.style.display = '';
+    c.smile.style.display = 'none';
+    c.mouth.style.display = '';
+    // Arms covering
+    c.armL.style.transform = 'rotate(-90deg)';
+    c.armR.style.transform = 'rotate(90deg)';
+  });
+}
+
+function showNormalEyes(c) {
+  c.eyeL.querySelector('circle').setAttribute('cx', 27);
+  c.eyeL.querySelector('circle').setAttribute('cy', 30);
+  c.eyeR.querySelector('circle').setAttribute('cx', 45);
+  c.eyeR.querySelector('circle').setAttribute('cy', 30);
+}
+
+// Start
+setStateIdle();
+updateEyesAndArms();
+
+// Continuous eye update loop for idle state
+function tick() {
+  if (state === 'idle' || state === 'email') updateEyesAndArms();
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
